@@ -148,7 +148,7 @@ def SplitLinesRecursive(theta, rho, startIdx, endIdx, params):
     # append these new alphas
     alpha = np.append(alpha, np.append(alpha1, alpha2))
     r = np.append(r, np.append(r1, r2))
-    idx = np.vstack([idx, [startIdx, endIdx]])
+    idx = np.vstack([idx1, idx2])
 
     ########## Code ends here ##########
     return alpha, r, idx
@@ -229,7 +229,7 @@ def FitLine(theta, rho):
         for j in range(n):
             double_summation += rho[i] * rho[j] * np.cos(theta[i] + theta[j])
 
-    denominator = np.sum(np.square(rho) * np.cos(2.*theta) - (1./n) * double_summation)
+    denominator = np.sum(np.square(rho) * np.cos(2.*theta)) - (1./n) * double_summation
 
     # combine to get alpha
     alpha = 0.5 * np.arctan2(numerator, denominator) + np.pi/2
@@ -287,11 +287,9 @@ def MergeColinearNeigbors(theta, rho, alpha, r, pointIdx, params):
             if not is_merge_running:
                 # this segment is a standalone, not part of any merges
                 # add current segment to our output vectors
-                alphaOut = np.append(alphaOut, alpha[segStart])
-                rOut = np.append(rOut, r[segStart])
-                pointIdxOut = np.append(pointIdxOut, pointIdx[startPointIdx,:])
-
-
+                alphaOut = np.append(alphaOut, alpha[startPointIdx])
+                rOut = np.append(rOut, r[startPointIdx])
+                pointIdxOut = np.vstack([pointIdxOut, pointIdx[startPointIdx,:]])
 
             else:
                 # first step the end segment back 1 to get proper end
@@ -300,7 +298,7 @@ def MergeColinearNeigbors(theta, rho, alpha, r, pointIdx, params):
                 # terminate the running merge and add to output vectors
                 alphaOut = np.append(alphaOut, running_merge_alpha)
                 rOut = np.append(rOut, running_merge_r)
-                pointIdxOut = np.append(pointIdxOut, [segStart, segEnd])
+                pointIdxOut = np.vstack([pointIdxOut, [segStart, segEnd]])
 
                 # end the running merge
                 is_merge_running = False
@@ -339,9 +337,9 @@ def ImportRangeData(filename):
 ############################################################
 def main():
     # parameters for line extraction (mess with these!)
-    MIN_SEG_LENGTH = 0.05  # minimum length of each line segment (m)
-    LINE_POINT_DIST_THRESHOLD = 0.02  # max distance of pt from line to split
-    MIN_POINTS_PER_SEGMENT = 4  # minimum number of points per line segment
+    MIN_SEG_LENGTH = 0.025  # minimum length of each line segment (m)
+    LINE_POINT_DIST_THRESHOLD = 0.04  # max distance of pt from line to split
+    MIN_POINTS_PER_SEGMENT = 2  # minimum number of points per line segment
     MAX_P2P_DIST = 1.0  # max distance between two adjent pts within a segment
 
     # Data files are formated as 'rangeData_<x_r>_<y_r>_N_pts.csv
@@ -349,9 +347,9 @@ def main():
     #       y_r is the robot's y position
     #       N_pts is the number of beams (e.g. 180 -> beams are 2deg apart)
 
-    filename = 'rangeData_5_5_180.csv'
+    #filename = 'rangeData_5_5_180.csv'
     # filename = 'rangeData_4_9_360.csv'
-    # filename = 'rangeData_7_2_90.csv'
+    filename = 'rangeData_7_2_90.csv'
 
     # Import Range Data
     RangeData = ImportRangeData(filename)
