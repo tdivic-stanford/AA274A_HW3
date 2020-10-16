@@ -191,8 +191,8 @@ def FindSplit(theta, rho, alpha, r, params):
         line_b_length = rho[pt_idx:].size
 
         # check criteria
-        if (d > params['LINE_POINT_DIST_THRESHOLD']) and (line_a_length > params['MIN_POINTS_PER_SEGMENT']) and\
-           (line_b_length > params['MIN_POINTS_PER_SEGMENT']):
+        if (d > params['LINE_POINT_DIST_THRESHOLD']) and (line_a_length >= params['MIN_POINTS_PER_SEGMENT']) and\
+           (line_b_length >= params['MIN_POINTS_PER_SEGMENT']):
 
             # if all criteria met, set current index to splitIdx and return
             splitIdx = pt_idx
@@ -337,9 +337,9 @@ def ImportRangeData(filename):
 ############################################################
 def main():
     # parameters for line extraction (mess with these!)
-    MIN_SEG_LENGTH = 0.025  # minimum length of each line segment (m)
-    LINE_POINT_DIST_THRESHOLD = 0.04  # max distance of pt from line to split
-    MIN_POINTS_PER_SEGMENT = 2  # minimum number of points per line segment
+    MIN_SEG_LENGTH = 0.05  # minimum length of each line segment (m)
+    LINE_POINT_DIST_THRESHOLD = 0.02  # max distance of pt from line to split
+    MIN_POINTS_PER_SEGMENT = 4  # minimum number of points per line segment
     MAX_P2P_DIST = 1.0  # max distance between two adjent pts within a segment
 
     # Data files are formated as 'rangeData_<x_r>_<y_r>_N_pts.csv
@@ -347,9 +347,9 @@ def main():
     #       y_r is the robot's y position
     #       N_pts is the number of beams (e.g. 180 -> beams are 2deg apart)
 
-    #filename = 'rangeData_5_5_180.csv'
+    filename = 'rangeData_5_5_180.csv'
     # filename = 'rangeData_4_9_360.csv'
-    filename = 'rangeData_7_2_90.csv'
+    # filename = 'rangeData_7_2_90.csv'
 
     # Import Range Data
     RangeData = ImportRangeData(filename)
