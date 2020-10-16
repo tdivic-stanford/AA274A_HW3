@@ -17,7 +17,19 @@ def template_match(template, image, threshold=0.999):
         matches: A list of (top-left y, top-left x, bounding box height, bounding box width) tuples for each match's bounding box.
     """
     ########## Code starts here ##########
-    raise NotImplementedError("Implement me!")
+    results = cv2.matchTemplate(image, template, method=cv2.TM_CCORR_NORMED)
+
+    # find all points in the resulting grid that exceed our matching threshold
+    match_corners = np.argwhere(results > threshold)
+
+    # for all the match corners, create the bounding box and add it to our matches
+    matches = []
+    width = np.shape(template)[1]
+    height = np.shape(template)[0]
+    for match_corner in match_corners:
+        matches.append((match_corner[0], match_corner[1], height, width))
+
+    return matches
     ########## Code ends here ##########
 
 
