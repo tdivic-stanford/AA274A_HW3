@@ -306,6 +306,12 @@ def MergeColinearNeigbors(theta, rho, alpha, r, pointIdx, params):
             # move our starting index to the next point
             startPointIdx = i
 
+            # make sure to add the last segment if we're done looping
+            if i == (np.shape(pointIdx)[0]-1):
+                alphaOut = np.append(alphaOut, alpha[i])
+                rOut = np.append(rOut, r[i])
+                pointIdxOut = np.vstack([pointIdxOut, pointIdx[i, :]])
+
         # otherwise if split is not possible, we have a good merge
         else:
             # set merge running flag
@@ -314,6 +320,16 @@ def MergeColinearNeigbors(theta, rho, alpha, r, pointIdx, params):
             # update the current merged line values based on last good fit
             running_merge_alpha = merged_alpha
             running_merge_r = merged_r
+
+            # handle case where looping is done but we still need to accept the final merge
+            if i == (np.shape(pointIdx)[0]-1):
+                # add the last point as part of our merged segment
+                segEnd = pointIdx[i, 1]
+
+                # terminate the running merge and add to output vectors
+                alphaOut = np.append(alphaOut, running_merge_alpha)
+                rOut = np.append(rOut, running_merge_r)
+                pointIdxOut = np.vstack([pointIdxOut, [segStart, segEnd]])
 
     ########## Code ends here ##########
     return alphaOut, rOut, pointIdxOut
