@@ -97,7 +97,7 @@ def ExtractLines(RangeData, params):
 
 def SplitLinesRecursive(theta, rho, startIdx, endIdx, params):
     '''
-    This function executes a recursive line-slitting algorithm, which
+    This function executes a recursive line-splitting algorithm, which
     recursively sub-divides line segments until no further splitting is
     required.
 
@@ -116,6 +116,39 @@ def SplitLinesRecursive(theta, rho, startIdx, endIdx, params):
     HINT: Call FindSplit() to find an index to split at.
     '''
     ########## Code starts here ##########
+    # initialize our alpha and r arrays
+    alpha = np.zeros(0)
+    r = np.zeros(0)
+    idx = np.zeros((0, 2), dtype=np.int)
+
+    # fit line from start to end
+    new_alpha, new_r = FitLine(theta[startIdx:endIdx], rho[startIdx:endIdx])
+
+    # check if we're already as small as we can get
+    if (endIdx - startIdx) <= params['MIN_POINTS_PER_SEGMENT']:
+        alpha = np.append(alpha, new_alpha)
+        r = np.append(r, new_r)
+        idx = np.vstack([idx, [startIdx, endIdx]])
+        return alpha, r, idx
+    
+    # find a split index if one exists
+    splitIdx = FindSplit(theta[startIdx:endIdx], rho[startIdx:endIdx], new_alpha, new_r, params)
+
+    # if we can't split, return our current line
+    if splitIdx == -1:
+        alpha = np.append(alpha, new_alpha)
+        r = np.append(r, new_r)
+        idx = np.vstack([idx, [startIdx, endIdx]])
+        return alpha, r, idx
+
+    # otherwise, split lines recursively along the split segments
+    alpha1, r1, idx1 = SplitLinesRecursive(theta, rho, startIdx, startIdx + splitIdx, params)
+    alpha2, r2, idx2 = SplitLinesRecursive(theta, rho, startIdx + splitIdx, endIdx, params)
+
+    # append these new alphas
+    alpha = np.append(alpha, np.append(alpha1, alpha2))
+    r = np.append(r, np.append(r1, r2))
+    idx = np.vstack([idx, [startIdx, endIdx]])
 
     ########## Code ends here ##########
     return alpha, r, idx
@@ -140,6 +173,33 @@ def FindSplit(theta, rho, alpha, r, params):
         splitIdx: idx at which to split line (return -1 if it cannot be split).
     '''
     ########## Code starts here ##########
+    # calculate the distance of all points to the current line
+    ds = abs(rho * np.cos(theta - alpha) - r)
+
+    # sort from largest to smallest
+    sorted_ds = np.sort(ds)[::-1]
+
+    # loop through each of the points and see if any satisfy both split conditions
+    for d in sorted_ds:
+        # get the unsorted index
+        pt_idx = np.where(ds == d)[0][0]
+        # if our point is the start or end of the line, we can't split, so just skip it
+        if pt_idx == 0 or pt_idx == ds.size:
+            continue
+
+        line_a_length = rho[:pt_idx].size
+        line_b_length = rho[pt_idx:].size
+
+        # check criteria
+        if (d > params['LINE_POINT_DIST_THRESHOLD']) and (line_a_length > params['MIN_POINTS_PER_SEGMENT']) and\
+           (line_b_length > params['MIN_POINTS_PER_SEGMENT']):
+
+            # if all criteria met, set current index to splitIdx and return
+            splitIdx = pt_idx
+            return splitIdx
+
+    # if we finished looping through all points without finding a split index, line can't be split
+    splitIdx = -1
 
     ########## Code ends here ##########
     return splitIdx
@@ -157,7 +217,24 @@ def FitLine(theta, rho):
         r: 'r' of best fit for range data (1 number) (m).
     '''
     ########## Code starts here ##########
+    # implement least squares equations from the problem description
+    # start with alpha (breaking down into readable chunks)
+    n = rho.size
+    # create numerator, treating double summation as product of two summations
+    numerator = np.sum(np.square(rho) * np.sin(2.*theta)) - \
+                (2./n) * np.sum(rho * np.cos(theta)) * np.sum(rho * np.sin(theta))
+    # handle denominator double summation with nested for loop, can't be written as product of two summations
+    double_summation = 0
+    for i in range(n):
+        for j in range(n):
+            double_summation += rho[i] * rho[j] * np.cos(theta[i] + theta[j])
 
+    denominator = np.sum(np.square(rho) * np.cos(2.*theta) - (1./n) * double_summation)
+
+    # combine to get alpha
+    alpha = 0.5 * np.arctan2(numerator, denominator) + np.pi/2
+
+    r = (1./n) * np.sum(rho * np.cos(theta - alpha))
     ########## Code ends here ##########
     return alpha, r
 
@@ -183,6 +260,62 @@ def MergeColinearNeigbors(theta, rho, alpha, r, pointIdx, params):
           merge. If it can be split, do not merge.
     '''
     ########## Code starts here ##########
+    # setup for iteration
+    startPointIdx = 0
+    rOut = np.zeros(0)
+    alphaOut = np.zeros(0)
+    pointIdxOut = np.zeros((0, 2), dtype=np.int)
+    is_merge_running = False
+    running_merge_alpha = 0
+    running_merge_r = 0
+
+
+    # loop through each line segment
+    for i in range(1,np.shape(pointIdx)[0]):
+        # set the start and end indices of the new segment
+        segStart = pointIdx[startPointIdx,0]
+        segEnd = pointIdx[i, 1]
+
+        # Fit a line to these points
+        segTheta = theta[segStart:(segEnd+1)]
+        segRho = rho[segStart:(segEnd+1)]
+        merged_alpha, merged_r = FitLine(segTheta, segRho)
+
+        # Check if a split is possible
+        if FindSplit(segTheta, segRho, merged_alpha, merged_r, params) != -1:
+            # split is possible, check if we having a running merge
+            if not is_merge_running:
+                # this segment is a standalone, not part of any merges
+                # add current segment to our output vectors
+                alphaOut = np.append(alphaOut, alpha[segStart])
+                rOut = np.append(rOut, r[segStart])
+                pointIdxOut = np.append(pointIdxOut, pointIdx[startPointIdx,:])
+
+
+
+            else:
+                # first step the end segment back 1 to get proper end
+                segEnd = pointIdx[i-1,1]
+
+                # terminate the running merge and add to output vectors
+                alphaOut = np.append(alphaOut, running_merge_alpha)
+                rOut = np.append(rOut, running_merge_r)
+                pointIdxOut = np.append(pointIdxOut, [segStart, segEnd])
+
+                # end the running merge
+                is_merge_running = False
+
+            # move our starting index to the next point
+            startPointIdx = i
+
+        # otherwise if split is not possible, we have a good merge
+        else:
+            # set merge running flag
+            is_merge_running = True
+
+            # update the current merged line values based on last good fit
+            running_merge_alpha = merged_alpha
+            running_merge_r = merged_r
 
     ########## Code ends here ##########
     return alphaOut, rOut, pointIdxOut
