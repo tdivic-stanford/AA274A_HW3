@@ -277,8 +277,8 @@ def MergeColinearNeigbors(theta, rho, alpha, r, pointIdx, params):
         segEnd = pointIdx[i, 1]
 
         # Fit a line to these points
-        segTheta = theta[segStart:(segEnd+1)]
-        segRho = rho[segStart:(segEnd+1)]
+        segTheta = theta[segStart:segEnd]
+        segRho = rho[segStart:segEnd]
         merged_alpha, merged_r = FitLine(segTheta, segRho)
 
         # Check if a split is possible
