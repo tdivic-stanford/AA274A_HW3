@@ -34,7 +34,7 @@ def corr(F, I):
             curr_I = I_padded[(i-1):(i-1+np.shape(F)[0]), (j-1):(j-1+np.shape(F)[1]), 0:np.shape(F)[2]]
 
             # flatten into the t_ij vector
-            t_ij = curr_I.ravel()
+            t_ij = curr_I.flatten()
 
             # compute current G element as dot product of f and t_ij
             G[i-1,j-1] = np.dot(f, t_ij)
@@ -72,10 +72,10 @@ def norm_cross_corr(F, I):
             curr_I = I_padded[(i - 1):(i - 1 + np.shape(F)[0]), (j - 1):(j - 1 + np.shape(F)[1]), 0:np.shape(F)[2]]
 
             # flatten into the t_ij vector
-            t_ij = curr_I.ravel()
+            t_ij = curr_I.flatten()
 
             # compute current G element as dot product of f and t_ij, divided by the norms
-            G[i - 1, j - 1] = np.dot(f, t_ij) / (np.norm(f) * np.norm(t_ij))
+            G[i - 1, j - 1] = np.dot(f, t_ij) / (np.linalg.norm(f) * np.linalg.norm(t_ij))
 
     return G
     ########## Code ends here ##########
