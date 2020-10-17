@@ -16,9 +16,12 @@ def corr(F, I):
         G: An (m, n)-shaped ndarray containing the correlation of the filter with the image.
     """
     ########## Code starts here ##########
+    # get size info about F
+    F_shape = np.shape(F)
+
     # created a padded I
-    num_padded_cols = int(np.shape(F)[1] / 2)
-    num_padded_rows = int(np.shape(F)[0] / 2)
+    num_padded_cols = int(F_shape[1] / 2)
+    num_padded_rows = int(F_shape[0] / 2)
 
     # add row padding
     I_padded = np.pad(I, ((num_padded_rows, num_padded_rows), (num_padded_cols, num_padded_cols), (0,0)), 'constant')
@@ -26,16 +29,19 @@ def corr(F, I):
     # create the filter vector for our dot product
     f = F.flatten()
 
+    # create size of G so we don't need to extract shape for every loop
+    G_rows = np.shape(I)[0]
+    G_cols = np.shape(I)[1]
+    G = np.zeros((G_rows, G_cols))
+
     # for each i and j pair, create a t_ij vector and calculate G_ij
-    G = np.zeros((np.shape(I)[0], np.shape(I)[1]))
-    for i in range(1,np.shape(G)[0]+1): # keeping this 1-indexed per the pset
-        for j in range(1,np.shape(G)[1]+1):
+    for i in range(1, G_rows + 1):  # keeping this 1-indexed per the pset
+        for j in range(1, G_cols + 1):
             # extract the current I_padded sub-matrix
-            curr_I = I_padded[(i-1):(i-1+np.shape(F)[0]), (j-1):(j-1+np.shape(F)[1]), 0:np.shape(F)[2]]
+            curr_I = I_padded[(i - 1):(i - 1 + F_shape[0]), (j - 1):(j - 1 + F_shape[1]), 0:F_shape[2]]
 
             # flatten into the t_ij vector
             t_ij = curr_I.flatten()
-
             # compute current G element as dot product of f and t_ij
             G[i-1,j-1] = np.dot(f, t_ij)
 
@@ -54,9 +60,12 @@ def norm_cross_corr(F, I):
         G: An (m, n)-shaped ndarray containing the normalized cross-correlation of the filter with the image.
     """
     ########## Code starts here ##########
+    # get size info about F
+    F_shape = np.shape(F)
+
     # created a padded I
-    num_padded_cols = int(np.shape(F)[1] / 2)
-    num_padded_rows = int(np.shape(F)[0] / 2)
+    num_padded_cols = int(F_shape[1] / 2)
+    num_padded_rows = int(F_shape[0] / 2)
 
     # add row padding
     I_padded = np.pad(I, ((num_padded_rows, num_padded_rows), (num_padded_cols, num_padded_cols), (0, 0)), 'constant')
@@ -64,12 +73,16 @@ def norm_cross_corr(F, I):
     # create the filter vector for our dot product
     f = F.flatten()
 
+    # create size of G so we don't need to extract shape for every loop
+    G_rows = np.shape(I)[0]
+    G_cols = np.shape(I)[1]
+    G = np.zeros((G_rows, G_cols))
+
     # for each i and j pair, create a t_ij vector and calculate G_ij
-    G = np.zeros((np.shape(I)[0], np.shape(I)[1]))
-    for i in range(1, np.shape(G)[0] + 1):  # keeping this 1-indexed per the pset
-        for j in range(1, np.shape(G)[1] + 1):
+    for i in range(1, G_rows + 1):  # keeping this 1-indexed per the pset
+        for j in range(1, G_cols + 1):
             # extract the current I_padded sub-matrix
-            curr_I = I_padded[(i - 1):(i - 1 + np.shape(F)[0]), (j - 1):(j - 1 + np.shape(F)[1]), 0:np.shape(F)[2]]
+            curr_I = I_padded[(i - 1):(i - 1 + F_shape[0]), (j - 1):(j - 1 + F_shape[1]), 0:F_shape[2]]
 
             # flatten into the t_ij vector
             t_ij = curr_I.flatten()
