@@ -19,13 +19,12 @@ def corr(F, I):
     # created a padded I
     num_padded_cols = int(np.shape(F)[1] / 2)
     num_padded_rows = int(np.shape(F)[0] / 2)
-    num_padded_depth = int(np.shape(F)[2] / 2)
 
     # add row padding
     I_padded = np.pad(I, ((num_padded_rows, num_padded_rows), (num_padded_cols, num_padded_cols), (0,0)), 'constant')
 
-    # create the filter vector for our dot product (creating it as a column vector)
-    f = F.flatten('F')
+    # create the filter vector for our dot product
+    f = F.flatten()
 
     # for each i and j pair, create a t_ij vector and calculate G_ij
     G = np.zeros((np.shape(I)[0], np.shape(I)[1]))
@@ -34,8 +33,8 @@ def corr(F, I):
             # extract the current I_padded sub-matrix
             curr_I = I_padded[(i-1):(i-1+np.shape(F)[0]), (j-1):(j-1+np.shape(F)[1]), 0:np.shape(F)[2]]
 
-            # flatten into the t_ij column vector
-            t_ij = curr_I.flatten('F')
+            # flatten into the t_ij vector
+            t_ij = curr_I.ravel()
 
             # compute current G element as dot product of f and t_ij
             G[i-1,j-1] = np.dot(f, t_ij)
@@ -55,7 +54,30 @@ def norm_cross_corr(F, I):
         G: An (m, n)-shaped ndarray containing the normalized cross-correlation of the filter with the image.
     """
     ########## Code starts here ##########
-    raise NotImplementedError("Implement me!")
+    # created a padded I
+    num_padded_cols = int(np.shape(F)[1] / 2)
+    num_padded_rows = int(np.shape(F)[0] / 2)
+
+    # add row padding
+    I_padded = np.pad(I, ((num_padded_rows, num_padded_rows), (num_padded_cols, num_padded_cols), (0, 0)), 'constant')
+
+    # create the filter vector for our dot product
+    f = F.flatten()
+
+    # for each i and j pair, create a t_ij vector and calculate G_ij
+    G = np.zeros((np.shape(I)[0], np.shape(I)[1]))
+    for i in range(1, np.shape(G)[0] + 1):  # keeping this 1-indexed per the pset
+        for j in range(1, np.shape(G)[1] + 1):
+            # extract the current I_padded sub-matrix
+            curr_I = I_padded[(i - 1):(i - 1 + np.shape(F)[0]), (j - 1):(j - 1 + np.shape(F)[1]), 0:np.shape(F)[2]]
+
+            # flatten into the t_ij vector
+            t_ij = curr_I.ravel()
+
+            # compute current G element as dot product of f and t_ij, divided by the norms
+            G[i - 1, j - 1] = np.dot(f, t_ij) / (np.norm(f) * np.norm(t_ij))
+
+    return G
     ########## Code ends here ##########
 
 
