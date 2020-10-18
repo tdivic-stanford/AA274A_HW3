@@ -4,7 +4,6 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 
-
 def half_downscale(image):
     """
     Input
@@ -14,7 +13,7 @@ def half_downscale(image):
         downscaled_image: A half-downscaled version of image.
     """
     ########## Code starts here ##########
-    raise NotImplementedError("Implement me!")
+    return image[::2, ::2, :]
     ########## Code ends here ##########
 
 
@@ -27,7 +26,8 @@ def blur_half_downscale(image):
         downscaled_image: A half-downscaled version of image.
     """
     ########## Code starts here ##########
-    raise NotImplementedError("Implement me!")
+    # call the half_downscale function on a blurred image
+    return half_downscale(cv2.GaussianBlur(image, ksize=(5,5), sigmaX=0.7))
     ########## Code ends here ##########
 
 
@@ -63,6 +63,13 @@ def bilinterp_upscale(image, scale):
     raise NotImplementedError("Implement me!")
     ########## Code ends here ##########
 
+def show_save_img(filename, image):
+    # Not super simple, because need to normalize image scale properly.
+    fig, ax = plt.subplots()
+    ax.imshow(image, interpolation='none')
+    fig.savefig(filename, bbox_inches='tight')
+    plt.show()
+    plt.close(fig)
 
 def main():
     # OpenCV actually uses a BGR color channel layout,
@@ -78,7 +85,12 @@ def main():
     # matches exactly what's in the data array you pass in.
     
     ########## Code starts here ##########
-    raise NotImplementedError("Implement me!")
+    test_card_downscaled = half_downscale(half_downscale(half_downscale(test_card)))
+    show_save_img("test_card_downscaled.png", test_card_downscaled)
+
+    blurred_test_card_downscaled = blur_half_downscale(blur_half_downscale(blur_half_downscale(test_card)))
+    show_save_img("blurred_test_card_downscaled.png", blurred_test_card_downscaled)
+
     ########## Code ends here ##########
 
 
