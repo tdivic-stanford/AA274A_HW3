@@ -40,7 +40,7 @@ def two_upscale(image):
         upscaled_image: A 2x-upscaled version of image.
     """
     ########## Code starts here ##########
-    raise NotImplementedError("Implement me!")
+    return np.repeat(np.repeat(image, 2, axis=0), 2, axis=1)
     ########## Code ends here ##########
 
 
@@ -58,6 +58,16 @@ def bilinterp_upscale(image, scale):
     f = (1./scale) * np.convolve(np.ones((scale, )), np.ones((scale, )))
     f = np.expand_dims(f, axis=0) # Making it (1, (2*scale)-1)-shaped
     filt = f.T * f
+
+    # first add the zero columns array between each column of the image
+    zero_cols_array = np.zeros((m,scale,c))
+    upscaled_image = np.insert(image, 1, zero_cols_array, axis=1)
+
+    # now add the necessary rows
+    zero_rows_array = np.zeros((np.shape(upscaled_image)[0], scale))
+    upscaled_image = np.insert(image, range(1,m), zero_rows_array, axis=0)
+
+    print('hold')
 
     ########## Code starts here ##########
     raise NotImplementedError("Implement me!")
@@ -86,10 +96,15 @@ def main():
     
     ########## Code starts here ##########
     test_card_downscaled = half_downscale(half_downscale(half_downscale(test_card)))
-    show_save_img("test_card_downscaled.png", test_card_downscaled)
+    #show_save_img("test_card_downscaled.png", test_card_downscaled)
 
     blurred_test_card_downscaled = blur_half_downscale(blur_half_downscale(blur_half_downscale(test_card)))
-    show_save_img("blurred_test_card_downscaled.png", blurred_test_card_downscaled)
+    #show_save_img("blurred_test_card_downscaled.png", blurred_test_card_downscaled)
+
+    favicon_upscaled = two_upscale(two_upscale(two_upscale(favicon)))
+    #show_save_img("favicon_upscaled.png", favicon_upscaled)
+
+    favicon_bilinterp = bilinterp_upscale(favicon, 8)
 
     ########## Code ends here ##########
 
