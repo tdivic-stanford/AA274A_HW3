@@ -35,6 +35,10 @@ def template_match(template, image,
         # template match on this new image
         new_matches = problem4_template_matching(template, upscaled_image, threshold=detection_threshold)
 
+        # scale the new matches back down to original size
+        sf = (i + 1) * 2 # scaling factor
+        new_matches = [(y/sf, x/sf, h/sf, w/sf) for y, x, h, w in new_matches]
+
         # append the new matches to our list of matches
         matches.extend(new_matches)
 
@@ -46,6 +50,10 @@ def template_match(template, image,
 
         # template match
         new_matches = problem4_template_matching(template, downscaled_image, threshold=detection_threshold)
+
+        # scale the new matches back up to original size
+        sf = (i + 1) * 2  # scaling factor
+        new_matches = [(y * sf, x * sf, h * sf, w * sf) for y, x, h, w in new_matches]
 
         # append to our list
         matches.extend(new_matches)
