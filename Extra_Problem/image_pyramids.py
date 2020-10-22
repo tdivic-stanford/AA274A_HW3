@@ -59,18 +59,22 @@ def bilinterp_upscale(image, scale):
     f = np.expand_dims(f, axis=0) # Making it (1, (2*scale)-1)-shaped
     filt = f.T * f
 
-    # first add the zero columns array between each column of the image
-    zero_cols_array = np.zeros((m,scale,c))
-    upscaled_image = np.insert(image, 1, zero_cols_array, axis=1)
-
-    # now add the necessary rows
-    zero_rows_array = np.zeros((np.shape(upscaled_image)[0], scale))
-    upscaled_image = np.insert(image, range(1,m), zero_rows_array, axis=0)
-
-    print('hold')
-
     ########## Code starts here ##########
-    raise NotImplementedError("Implement me!")
+    # create the scaled image with zeros
+    image_scaled = np.zeros((m*scale, n*scale, c))
+
+    # now loop through the original image and place the elements in the proper place in image_scaled
+    for i in range(m):
+        for j in range(n):
+            image_scaled[i*scale, j*scale, :] = image[i,j,:]
+
+    # remove the extra zeros from our image_scaled
+    image_scaled = image_scaled[0:(m*scale - (scale-1)), 0:(n*scale - (scale-1)), :]
+
+    # now perform correlation on the upscaled_image to do bilinear interpolation
+    upscaled_image = cv2.filter2D(image_scaled, -1, filt)
+
+    return upscaled_image
     ########## Code ends here ##########
 
 def show_save_img(filename, image):
@@ -105,6 +109,7 @@ def main():
     #show_save_img("favicon_upscaled.png", favicon_upscaled)
 
     favicon_bilinterp = bilinterp_upscale(favicon, 8)
+    #show_save_img("favicon_bilinterp.png", favicon_bilinterp)
 
     ########## Code ends here ##########
 
